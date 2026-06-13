@@ -1,0 +1,12 @@
+name = "expenses-api"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+MONTHLY_INCOME = "27000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "expenses"
+# Fill in after: npx wrangler d1 create expenses
+database_id = "REPLACE_ME"

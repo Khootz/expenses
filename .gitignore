@@ -1,0 +1,37 @@
+# --- Personal data — never commit this ---
+# Real transaction DB pulled off the phone and the raw notification dump.
+*.db
+*.db-journal
+recorder-pull.db
+notifdump.txt
+
+# Build output / installer
+*.apk
+*.aab
+
+# Scratch screenshots
+_verify.png
+ui-*.png
+*.tmp.png
+
+# --- Android (recorder/) ---
+.gradle/
+build/
+**/build/
+.kotlin/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Backend (Cloudflare Worker) ---
+node_modules/
+.wrangler/
+.dev.vars
+backend/.dev.vars
+
+# --- OS ---
+.DS_Store
+Thumbs.db

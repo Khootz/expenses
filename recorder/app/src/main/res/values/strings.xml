@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Expenses</string>
+    <string name="captures_title">Captured notifications</string>
+    <string name="btn_access">Grant access</string>
+    <string name="btn_battery">Allow background</string>
+    <string name="btn_export">Export JSON</string>
+    <string name="btn_pkgs">Other apps seen</string>
+    <string name="btn_log">Log</string>
+    <string name="btn_prev">‹</string>
+    <string name="btn_next">›</string>
+    <string name="perm_banner">⚠ Notification access needed — tap to enable</string>
+    <string name="savings_title">Saved this month</string>
+    <string name="by_category">By category</string>
+    <string name="daily_heatmap">Daily spending</string>
+    <string name="transactions">Transactions</string>
+    <string name="no_spending">No spending recorded yet</string>
+    <string name="empty_txns">Nothing yet. Payments appear here automatically; tap + to add cash spending.</string>
+    <string name="add_expense">Add expense</string>
+    <string name="set_category">Set category</string>
+    <string name="always_rule">Always categorize \"%1$s\" as %2$s?</string>
+    <string name="hint_amount">Amount (HKD)</string>
+    <string name="hint_note">Note / merchant (optional)</string>
+    <string name="paid_with">Paid with</string>
+    <string name="confirm_tracked">Notify me when an expense is tracked</string>
+    <string name="empty_hint">No captures yet.\nMake a payment (or a HK$1 AlipayHK transfer) to test —\nit should appear here within a second.</string>
+</resources>
