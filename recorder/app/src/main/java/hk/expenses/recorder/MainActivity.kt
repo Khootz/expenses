@@ -225,12 +225,11 @@ class MainActivity : AppCompatActivity() {
         val activeFrom =
             if (trackingStart != null && trackingStart.isAfter(monthFirst)) trackingStart else monthFirst
         val activeTo = if (ym == YearMonth.now()) today else ym.atEndOfMonth()
-        val daysTracked = (java.time.temporal.ChronoUnit.DAYS.between(activeFrom, activeTo) + 1)
-            .coerceAtLeast(1).toInt()
 
         // Heatmap shows day-to-day *discretionary* spend, so a once-a-month rent
         // payment doesn't swamp the color scale. Fixed costs go into the burn
-        // rate instead (amortised across the month).
+        // rate instead (amortised across the month). Today's cell still fills in
+        // live as you spend.
         val dayTotals = spendRows
             .filter { it.category != Categories.FIXED }
             .groupBy {
@@ -239,20 +238,36 @@ class MainActivity : AppCompatActivity() {
             .mapValues { e -> e.value.sumOf { it.amountCents }.coerceAtLeast(0) }
         heatmap.setData(ym, dayTotals, activeFrom.dayOfMonth, activeTo.dayOfMonth)
 
-        // Daily burn rate: variable spend averaged over days tracked, plus the
-        // month's fixed costs spread evenly across every day (so rent paid on
-        // the 1st reads the same as the 28th). Projection holds that pace to
-        // month-end.
+        // Daily burn rate averages only over *completed* days — today is still
+        // in progress, so counting it would skew the figure all day long. It
+        // rolls over once at midnight. Fixed costs are spread evenly across the
+        // month (rent paid on the 1st reads the same as the 28th).
         val daysInMonth = ym.lengthOfMonth()
+        val lastComplete = if (ym == YearMonth.now()) today.minusDays(1) else ym.atEndOfMonth()
+        val completedDays =
+            if (lastComplete.isBefore(activeFrom)) 0
+            else (java.time.temporal.ChronoUnit.DAYS.between(activeFrom, lastComplete) + 1).toInt()
         val fixedSpent = spendRows.filter { it.category == Categories.FIXED }
             .sumOf { it.amountCents }.coerceAtLeast(0)
-        val variableSpent = (spent - fixedSpent).coerceAtLeast(0)
-        val burnPerDay = variableSpent / daysTracked + fixedSpent / daysInMonth
-        val projected = variableSpent * daysInMonth / daysTracked + fixedSpent
-        burnRate.text = "≈ ${fmt(burnPerDay)}/day  ·  projected ${fmt(projected)} this month"
-        burnRate.setTextColor(
-            if (projected > Categories.SALARY_CENTS) 0xFFEF5350.toInt() else 0xFF30A46C.toInt()
-        )
+        val variableComplete = spendRows
+            .filter { it.category != Categories.FIXED }
+            .filter {
+                !java.time.Instant.ofEpochMilli(it.ts).atZone(zoneForDays).toLocalDate()
+                    .isAfter(lastComplete)
+            }
+            .sumOf { it.amountCents }.coerceAtLeast(0)
+        if (completedDays <= 0) {
+            // First day of tracking — no full day to average yet.
+            burnRate.text = "≈ daily average starts after today"
+            burnRate.setTextColor(0xFF888888.toInt())
+        } else {
+            val burnPerDay = variableComplete / completedDays + fixedSpent / daysInMonth
+            val projected = variableComplete * daysInMonth / completedDays + fixedSpent
+            burnRate.text = "≈ ${fmt(burnPerDay)}/day  ·  projected ${fmt(projected)} this month"
+            burnRate.setTextColor(
+                if (projected > Categories.SALARY_CENTS) 0xFFEF5350.toInt() else 0xFF30A46C.toInt()
+            )
+        }
 
         // Donut: positive net categories only; legend shows everything
         // (a negative net category appears in the legend as an offset).
