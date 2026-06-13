@@ -19,6 +19,11 @@ class HeatmapView(context: Context, attrs: AttributeSet?) : View(context, attrs)
 
     private var ym: YearMonth = YearMonth.now()
     private var totals: Map<Int, Long> = emptyMap() // dayOfMonth -> spend cents (>= 0)
+    // Days outside [activeFrom, activeTo] are "no data" — before tracking
+    // started, or still in the future — and render greyed/hollow rather than
+    // as a zero-spend day.
+    private var activeFrom = 1
+    private var activeTo = 31
     var onDayClick: ((Int) -> Unit)? = null
 
     private val cellPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -37,10 +42,14 @@ class HeatmapView(context: Context, attrs: AttributeSet?) : View(context, attrs)
         color = 0xFF888888.toInt()
     }
 
-    // 0 = no spending, 1..4 = intensity ramp (light → deep red)
+    // 0 = tracked but no spending, 1..4 = intensity ramp (pale → deep sun gold).
+    // Sun-yellow/gold keeps the GitHub-contributions vibe without the "alarm"
+    // of red, and stays yellow rather than tipping into orange.
     private val ramp = intArrayOf(
-        0x14888888, 0x40E5484D, 0x80E5484D.toInt(), 0xC0E5484D.toInt(), 0xFFC62828.toInt()
+        0x1FFACC15, 0xFFFFE99B.toInt(), 0xFFFFE066.toInt(), 0xFFFFD43B.toInt(), 0xFFF2B705.toInt()
     )
+    // Hollow look for days with no data at all.
+    private val inactiveFill = 0x0DFFFFFF
 
     private val gap = dp(4f)
     private val headerH = dp(18f)
@@ -48,9 +57,11 @@ class HeatmapView(context: Context, attrs: AttributeSet?) : View(context, attrs)
 
     private fun dp(v: Float) = v * resources.displayMetrics.density
 
-    fun setData(month: YearMonth, dayTotals: Map<Int, Long>) {
+    fun setData(month: YearMonth, dayTotals: Map<Int, Long>, activeFrom: Int, activeTo: Int) {
         ym = month
         totals = dayTotals
+        this.activeFrom = activeFrom
+        this.activeTo = activeTo
         requestLayout()
         invalidate()
     }
@@ -87,13 +98,18 @@ class HeatmapView(context: Context, attrs: AttributeSet?) : View(context, attrs)
             val x = col * (cell + gap)
             val y = headerH + row * (cell + gap)
             r.set(x, y, x + cell, y + cell)
-            val b = bucket(day, max)
-            cellPaint.color = ramp[b]
+            val active = day in activeFrom..activeTo
+            val b = if (active) bucket(day, max) else 0
+            cellPaint.color = if (active) ramp[b] else inactiveFill
             canvas.drawRoundRect(r, dp(6f), dp(6f), cellPaint)
             if (isThisMonth && day == today.dayOfMonth) {
                 canvas.drawRoundRect(r, dp(6f), dp(6f), ringPaint)
             }
-            textPaint.color = if (b >= 3) 0xFFFFFFFF.toInt() else 0xFF888888.toInt()
+            textPaint.color = when {
+                !active -> 0x40FFFFFF            // no data — barely there
+                b >= 1 -> 0xDD3A2A00.toInt()     // dark text reads on every sun-gold shade
+                else -> 0xFF888888.toInt()       // tracked, nothing spent
+            }
             canvas.drawText(
                 day.toString(), x + cell / 2,
                 y + cell / 2 - (textPaint.ascent() + textPaint.descent()) / 2,

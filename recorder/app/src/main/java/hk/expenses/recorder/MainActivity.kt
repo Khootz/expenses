@@ -212,31 +212,44 @@ class MainActivity : AppCompatActivity() {
         budgetFill.requestLayout()
         budgetRest.requestLayout()
 
-        // Heatmap shows day-to-day *discretionary* spend, so a once-a-month
-        // rent payment doesn't swamp the color scale. Fixed costs go into the
-        // burn rate instead (amortised across the month).
+        // Tracking only began when the first transaction landed. Days before
+        // that — and days still in the future — aren't "spent nothing", they're
+        // "no data", so the heatmap greys them out and the daily average divides
+        // by days *actually tracked*, not by the calendar day-of-month.
         val zoneForDays = ZoneId.systemDefault()
+        val trackingStart = Db.get(this).earliestTxnTs()?.let {
+            java.time.Instant.ofEpochMilli(it).atZone(zoneForDays).toLocalDate()
+        }
+        val monthFirst = ym.atDay(1)
+        val today = java.time.LocalDate.now()
+        val activeFrom =
+            if (trackingStart != null && trackingStart.isAfter(monthFirst)) trackingStart else monthFirst
+        val activeTo = if (ym == YearMonth.now()) today else ym.atEndOfMonth()
+        val daysTracked = (java.time.temporal.ChronoUnit.DAYS.between(activeFrom, activeTo) + 1)
+            .coerceAtLeast(1).toInt()
+
+        // Heatmap shows day-to-day *discretionary* spend, so a once-a-month rent
+        // payment doesn't swamp the color scale. Fixed costs go into the burn
+        // rate instead (amortised across the month).
         val dayTotals = spendRows
             .filter { it.category != Categories.FIXED }
             .groupBy {
                 java.time.Instant.ofEpochMilli(it.ts).atZone(zoneForDays).toLocalDate().dayOfMonth
             }
             .mapValues { e -> e.value.sumOf { it.amountCents }.coerceAtLeast(0) }
-        heatmap.setData(ym, dayTotals)
+        heatmap.setData(ym, dayTotals, activeFrom.dayOfMonth, activeTo.dayOfMonth)
 
-        // Daily burn rate: variable spend averaged over the days so far, plus
-        // the month's fixed costs spread evenly over every day (so paying rent
-        // on the 1st reads the same as paying it on the 28th). Projection holds
-        // today's pace to month-end.
+        // Daily burn rate: variable spend averaged over days tracked, plus the
+        // month's fixed costs spread evenly across every day (so rent paid on
+        // the 1st reads the same as the 28th). Projection holds that pace to
+        // month-end.
         val daysInMonth = ym.lengthOfMonth()
-        val daysElapsed =
-            if (ym == YearMonth.now()) java.time.LocalDate.now().dayOfMonth else daysInMonth
         val fixedSpent = spendRows.filter { it.category == Categories.FIXED }
             .sumOf { it.amountCents }.coerceAtLeast(0)
         val variableSpent = (spent - fixedSpent).coerceAtLeast(0)
-        val burnPerDay = variableSpent / daysElapsed + fixedSpent / daysInMonth
-        val projected = variableSpent * daysInMonth / daysElapsed + fixedSpent
-        burnRate.text = "≈ ${fmt(burnPerDay)}/day  ·  on track for ${fmt(projected)} this month"
+        val burnPerDay = variableSpent / daysTracked + fixedSpent / daysInMonth
+        val projected = variableSpent * daysInMonth / daysTracked + fixedSpent
+        burnRate.text = "≈ ${fmt(burnPerDay)}/day  ·  projected ${fmt(projected)} this month"
         burnRate.setTextColor(
             if (projected > Categories.SALARY_CENTS) 0xFFEF5350.toInt() else 0xFF30A46C.toInt()
         )

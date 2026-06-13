@@ -179,7 +179,7 @@ class CapturesActivity : AppCompatActivity() {
     private fun showPackagesSeen() {
         val seen = Db.get(this).packagesSeen()
         val msg = if (seen.isEmpty()) "Nothing seen yet."
-        else seen.take(40).joinToString("\n") { "${it.label ?: "?"}  (${it.pkg})  ×${it.count}" }
+        else seen.take(40).joinToString("\n") { "${it.label ?: AppNames.shortName(it.pkg)}  ×${it.count}" }
         AlertDialog.Builder(this)
             .setTitle("Other apps posting notifications")
             .setMessage(msg)

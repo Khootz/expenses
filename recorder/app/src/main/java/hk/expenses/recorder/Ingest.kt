@@ -21,22 +21,26 @@ object Categories {
     /** Reimbursable — tracked but excluded from spending and savings. */
     const val WORK = "Work"
 
-    // Single source of truth for how a category looks. The color is semantic
-    // (warm = food, blue = getting around, purple = home) and stays the SAME
-    // everywhere it appears — list, donut, legend — so the eye learns it once.
-    // Pairing each color with an emoji is deliberate "dual coding": the row is
-    // still readable if you can't tell the colors apart.
+    // Single source of truth for how a category looks. Bright, modern tones in
+    // the same violet→cyan family as the hero gradient (vivid, not muddy), each
+    // a clearly different hue so the donut/legend/list read at a glance. The
+    // color stays the SAME everywhere it appears, and pairing it with an emoji
+    // is deliberate "dual coding" — the row is still readable color-blind.
+    //
+    // Icons are kept GENERIC, not literal: "Food & Groceries" is a plate, not a
+    // noodle bowl, so logging chicken / ice cream / a supermarket run all fit
+    // under it without feeling wrong.
     private val META = linkedMapOf(
-        "Food & Groceries" to (0xFFFF7043.toInt() to "🍜"), // 🍜 deep orange
-        "Transport" to (0xFF42A5F5.toInt() to "🚇"),        // 🚇 blue
-        "Rent & Bills" to (0xFF7E57C2.toInt() to "🏠"),     // 🏠 deep purple
-        "Lifestyle" to (0xFFEC407A.toInt() to "🛍️"),       // 🛍️ pink
-        "Work" to (0xFF5C6BC0.toInt() to "💼"),             // 💼 indigo
-        "Income" to (0xFF2E7D32.toInt() to "💰"),           // 💰 dark green
-        "Transfer" to (0xFF78909C.toInt() to "🔄"),         // 🔄 blue-grey
-        "Other" to (0xFF90A4AE.toInt() to "🧾")             // 🧾 grey
+        "Food & Groceries" to (0xFFFF6B6B.toInt() to "🍽️"), // 🍽️ coral red
+        "Transport" to (0xFFFF922B.toInt() to "🚇"),         // 🚇 orange
+        "Rent & Bills" to (0xFF845EF7.toInt() to "🏠"),      // 🏠 violet
+        "Lifestyle" to (0xFFAE3EC9.toInt() to "🛍️"),        // 🛍️ grape
+        "Work" to (0xFF0CA678.toInt() to "💼"),              // 💼 deep teal
+        "Income" to (0xFF37B24D.toInt() to "💰"),            // 💰 green
+        "Transfer" to (0xFFB08968.toInt() to "🔄"),          // 🔄 bronze
+        "Other" to (0xFF94D82D.toInt() to "🧾")              // 🧾 lime
     )
-    private val FALLBACK = 0xFF90A4AE.toInt() to "💸"    // 💸 uncategorized
+    private val FALLBACK = 0xFFADB5BD.toInt() to "💸"    // 💸 uncategorized
 
     fun color(cat: String?): Int = (META[cat] ?: FALLBACK).first
     fun icon(cat: String?): String = (META[cat] ?: FALLBACK).second
