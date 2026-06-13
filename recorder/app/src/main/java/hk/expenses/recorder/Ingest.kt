@@ -31,9 +31,9 @@ object Categories {
     // noodle bowl, so logging chicken / ice cream / a supermarket run all fit
     // under it without feeling wrong.
     private val META = linkedMapOf(
-        "Food & Groceries" to (0xFFFF6B6B.toInt() to "🍽️"), // 🍽️ coral red
+        "Food & Groceries" to (0xFF7950F2.toInt() to "🍽️"), // 🍽️ vivid violet
         "Transport" to (0xFFFF922B.toInt() to "🚇"),         // 🚇 orange
-        "Rent & Bills" to (0xFF845EF7.toInt() to "🏠"),      // 🏠 violet
+        "Rent & Bills" to (0xFF4263EB.toInt() to "🏠"),      // 🏠 deep indigo
         "Lifestyle" to (0xFFAE3EC9.toInt() to "🛍️"),        // 🛍️ grape
         "Work" to (0xFF0CA678.toInt() to "💼"),              // 💼 deep teal
         "Income" to (0xFF37B24D.toInt() to "💰"),            // 💰 green
